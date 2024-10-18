@@ -2,11 +2,16 @@ package b100.custombiomecolors;
 
 import static b100.custombiomecolors.CustomBiomeColorsMod.*;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import b100.custombiomecolors.colorizer.Colorizer;
 import b100.custombiomecolors.colormap.Colormap;
 import b100.custombiomecolors.colormap.SimpleColormap;
+import b100.json.element.JsonArray;
 import b100.json.element.JsonElement;
 import b100.json.element.JsonEntry;
 import b100.json.element.JsonObject;
@@ -15,6 +20,8 @@ public class ConfigLoader {
 	
 	public JsonObject root;
 	
+	private Map<String, Set<String>> biomeGroups = new HashMap<>();
+	
 	private boolean fileContainsInvalidColorizer = false;
 	
 	public ConfigLoader(JsonObject root) throws ConfigLoadException {
@@ -22,6 +29,7 @@ public class ConfigLoader {
 
 		debugPrint("Loading " + CONFIG_FILE_NAME);
 		
+		loadBiomeGroups();
 		loadColorizers();
 		
 		if(fileContainsInvalidColorizer) {
@@ -32,8 +40,39 @@ public class ConfigLoader {
 		}
 	}
 	
+	private void loadBiomeGroups() throws ConfigLoadException {
+		JsonObject biomeGroups = root.getObject("biome_groups");
+		if(biomeGroups == null) {
+			debugPrint("No biome groups");
+			return;
+		}
+		
+		debugPrint("Loading biome groups");
+
+		List<JsonEntry> entryList = biomeGroups.entryList();
+		for(int i=0; i < entryList.size(); i++) {
+			JsonEntry entry = entryList.get(i);
+			
+			String name = entry.name;
+			debugPrint("  Biome group: " + name);
+			
+			Set<String> biomeGroup = this.biomeGroups.get(name);
+			if(biomeGroup == null) {
+				biomeGroup = new HashSet<>();
+				this.biomeGroups.put(name, biomeGroup);
+			}
+			
+			JsonArray biomes = entry.value.getAsArray();
+			for(JsonElement element : biomes) {
+				String biome = element.getAsString().value;
+				biomeGroup.add(biome);
+				debugPrint("    Biome: " + biome);
+			}
+		}
+	}
+	
 	private void loadColorizers() throws ConfigLoadException {
-		JsonObject colorizers = root.getObject("colorizer");
+		JsonObject colorizers = root.getObject("colorizers");
 		if(colorizers == null) {
 			throw new ConfigLoadException("biomecolors.json is missing 'colorizer' object!");
 		}
@@ -74,13 +113,23 @@ public class ConfigLoader {
 		for(int i=0; i < entryList.size(); i++) {
 			JsonEntry entry = entryList.get(i);
 			
-			String biomeName = entry.name;
+			boolean isGroup = entry.name.startsWith("#");
 			
-			debugPrint("    Biome: " + biomeName);
+			if(entry.name.startsWith("#")) {
+				debugPrint("    Group: " + entry.name);
+			}else {
+				debugPrint("    Biome: " + entry.name);
+			}
 			
-			Colormap colormap = parseColormap(entry.value);
-			
-			colorizer.put(biomeName, colormap);
+			Colormap colormap = parseColormap(entry.value);			
+			if(isGroup) {
+				Set<String> biomeGroup = biomeGroups.get(entry.name.substring(1));
+				for(String biomeName : biomeGroup) {
+					colorizer.put(biomeName, colormap);	
+				}
+			}else {
+				colorizer.put(entry.name, colormap);	
+			}
 		}
 	}
 	
