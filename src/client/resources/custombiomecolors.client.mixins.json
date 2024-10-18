@@ -1,0 +1,15 @@
+{
+	"required": true,
+	"package": "b100.custombiomecolors.mixin",
+	"plugin": "b100.custombiomecolors.MixinPlugin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"BackgroundRendererMixin",
+		"BiomeColorsMixin",
+		"ClientWorldMixin",
+		"MinecraftClientMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

@@ -1,0 +1,28 @@
+{
+	"schemaVersion": 1,
+	"id": "custombiomecolors",
+	"version": "${version}",
+	"name": "Custom Biome Colors",
+	"description": "More biome color customization for resource packs",
+	"authors": [
+		"Me!"
+	],
+	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"b100.custombiomecolors.CustomBiomeColorsMod"
+		]
+	},
+	"mixins": [
+		{
+			"config": "custombiomecolors.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.16.2",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
